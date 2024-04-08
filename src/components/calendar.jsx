@@ -12,14 +12,14 @@ function Calendar() {
   const fetchHolidays = async () => {
     try {
       const serviceKey =
-        "7%2BAaSmpK5tpk%2BDTGrlslJBQz8ri55TufnrLlR%2B0fExcf%2FQGHqmN4H9USkFDVdlLtxfHu90IcOMbbBBY4e0eljg%3D%3D";
-      const url = `http://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getAnniversaryInfo`;
+        "WiqpH7lJvnqak4Tyw0vYtSCKBz+eigipH//wVq3Zhl20Q+umW9MLXyGMG7LAaYTItiLHFJ90m1Z3lxZFZiNskQ==";
+      const url = `https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo`;
       const queryParams = new URLSearchParams({
-        ServiceKey: serviceKey,
-        pageNo: 1,
-        numOfRows: 10,
+        serviceKey: serviceKey,
+        // pageNo: 1,
+        // numOfRows: 10,
         solYear: currentMonth.year(),
-        solMonth: currentMonth.month() + 1,
+        solMonth: (currentMonth.month() + 1).toString().padStart(2, "0"),
       });
 
       const response = await fetch(`${url}?${queryParams.toString()}`);
@@ -28,7 +28,13 @@ function Calendar() {
       const xmlDoc = parser.parseFromString(data, "text/xml"); // 문자열을 XML 문서로 파싱
       const items = xmlDoc.getElementsByTagName("item");
       const holidayList = Array.from(items).map((item) => {
-        return item.getElementsByTagName("locdate")[0].textContent; // 각 item의 locdate 값을 배열에 추가
+        return {
+          dateKind: item.getElementsByTagName("dateKind")[0].textContent,
+          locdate: item.getElementsByTagName("locdate")[0].textContent,
+          isHoliday: item.getElementsByTagName("isHoliday")[0].textContent,
+          dateName: item.getElementsByTagName("dateName")[0].textContent,
+          seq: item.getElementsByTagName("seq")[0].textContent,
+        }; // 각 item의 locdate 값을 배열에 추가
       });
       setHolidays(holidayList);
     } catch (error) {
@@ -87,21 +93,20 @@ function Calendar() {
     while (currentDay.isBefore(currentMonth.endOf("month").endOf("week"))) {
       const days = [];
       for (let i = 0; i < 7; i++) {
-        const isTargetDay = currentDay.isSame(selectedDate, "day");
-        const isOtherMonth = currentDay.month() !== currentMonth.month();
+        const isTargetDay = currentDay.isSame(selectedDate, "day"); // 대상 날짜
+        const isOtherMonth = currentDay.month() !== currentMonth.month(); // 해당월이 아닌 날짜
+        const isSunday = currentDay.day() === 0; // 일요일인지 확인합니다.
+        const isSaturday = currentDay.day() === 6; // 토요일인지 확인합니다.
         days.push(
-          <span
+          <div
             key={currentDay.format("YYYY-MM-DD")}
-            className={`flex w-full items-center justify-center h-11 ${
+            className={`flex flex-col justify-start w-full  items-end h-20 p-1 ${
               styles.day
             } ${isTargetDay ? styles["target-date"] : ""} ${
               isOtherMonth ? styles["other-month"] : ""
-            }`}
+            } ${isSunday || isSaturday ? "bg-stone-100 text-stone-400" : ""}`}
             onClick={() => setSelectedDate(currentDay)}
           >
-            {isHoliday(currentDay) && (
-              <span className={styles.holiday}>공휴일</span>
-            )}
             {
               <span>
                 <span
@@ -110,19 +115,31 @@ function Calendar() {
                   } relative p-1 size-6 inline-flex justify-center items-center`}
                 >
                   {isToday(currentDay) && (
-                    <span className="bg-red-300 rounded-full absolute size-6 -z-10 left-0 top-0"></span>
+                    <span className="bg-red-500 rounded-full absolute size-6 -z-10 left-0 top-0"></span>
                   )}
                   {currentDay.format("D")}
                 </span>
                 일
               </span>
             }
-          </span>
+            <span className={"bg-red-200 px-2 rounded w-full text-xs"}>
+              {
+                holidays.find(
+                  (el) =>
+                    el.locdate === currentDay?.format("YYYYMMDD") &&
+                    el.isHoliday === "Y"
+                )?.dateName
+              }
+            </span>
+          </div>
         );
         currentDay = currentDay.add(1, "day");
       }
       weeks.push(
-        <div key={currentDay.format("YYYY-MM-DD")} className={styles.week}>
+        <div
+          key={currentDay.format("YYYY-MM-DD")}
+          className="grid grid-cols-7 border-b border-x divide-x first:border-t"
+        >
           {days}
         </div>
       );
@@ -153,14 +170,14 @@ function Calendar() {
           </button>
         </div>
       </div>
-      <div className={styles.days}>
-        <span className="text-red-500">일</span>
-        <span>월</span>
-        <span>화</span>
-        <span>수</span>
-        <span>목</span>
-        <span>금</span>
-        <span className="text-red-500">토</span>
+      <div className="grid grid-cols-7 justify-items-end">
+        <span className="p-1 text-stone-400">일</span>
+        <span className="p-1 ">월</span>
+        <span className="p-1 ">화</span>
+        <span className="p-1 ">수</span>
+        <span className="p-1 ">목</span>
+        <span className="p-1 ">금</span>
+        <span className="p-1 text-stone-400">토</span>
       </div>
       <div className={`${styles.calendar} relative z-10`}>
         {renderCalendar()}

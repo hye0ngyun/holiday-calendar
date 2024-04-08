@@ -20,9 +20,9 @@
 .calendar {
 }
 .calendar div {
-  display: grid;
+  /* display: grid;
   grid-template-columns: repeat(7, 1fr);
-  justify-items: center;
+  justify-items: center; */
 }
 /* .calendar span {
   display: flex;
@@ -35,7 +35,7 @@
   position: relative;
 }
 .other-month {
-  opacity: 0;
+  opacity: 0.5;
 }
 .ui-calendar {
 }
