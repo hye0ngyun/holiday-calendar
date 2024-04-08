@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/holiday-calendar/static/css/main.7242130f.css",
-    "main.js": "/holiday-calendar/static/js/main.71b12a67.js",
+    "main.css": "/holiday-calendar/static/css/main.f75da6e2.css",
+    "main.js": "/holiday-calendar/static/js/main.64e8490a.js",
     "index.html": "/holiday-calendar/index.html",
-    "main.7242130f.css.map": "/holiday-calendar/static/css/main.7242130f.css.map",
-    "main.71b12a67.js.map": "/holiday-calendar/static/js/main.71b12a67.js.map"
+    "main.f75da6e2.css.map": "/holiday-calendar/static/css/main.f75da6e2.css.map",
+    "main.64e8490a.js.map": "/holiday-calendar/static/js/main.64e8490a.js.map"
   },
   "entrypoints": [
-    "static/css/main.7242130f.css",
-    "static/js/main.71b12a67.js"
+    "static/css/main.f75da6e2.css",
+    "static/js/main.64e8490a.js"
   ]
 }
