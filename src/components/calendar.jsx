@@ -101,7 +101,7 @@ function Calendar() {
         days.push(
           <div
             key={currentDay.format("YYYY-MM-DD")}
-            className={`flex flex-col justify-start w-full  items-end h-20 p-1 gap-0.5 overflow-y-auto ${
+            className={`flex flex-col justify-start w-full  items-end min-h-20 aspect-square p-1 gap-0.5 overflow-y-auto ${
               styles.day
             } ${isTargetDay ? styles["target-date"] : ""} ${
               isOtherMonth ? styles["other-month"] : ""
@@ -171,19 +171,27 @@ function Calendar() {
 
   return (
     <div>
-      <div className="mb-8 text-xl text-center flex justify-between">
-        <div>{currentMonth.format("YYYY년 M월")}</div>
-        <div className="flex gap-2">
+      <div className="mb-2 text-xl text-center flex justify-between items-center">
+        <h2 className="text-3xl font-bold">
+          {currentMonth.format("YYYY년 M월")}
+        </h2>
+        <div className="flex text-xs">
           <button
-            className="rounded-sm shadow px-2"
+            className="hover:bg-stone-200 transition rounded shadow px-2"
             onClick={goToPreviousMonth}
           >
             {"<"}
           </button>
-          <button className="rounded-sm shadow px-2" onClick={goToToday}>
+          <button
+            className="hover:bg-stone-200 transition rounded shadow px-4"
+            onClick={goToToday}
+          >
             오늘
           </button>
-          <button className="rounded-sm shadow px-2" onClick={goToNextMonth}>
+          <button
+            className="hover:bg-stone-200 transition rounded shadow px-2"
+            onClick={goToNextMonth}
+          >
             {">"}
           </button>
         </div>
