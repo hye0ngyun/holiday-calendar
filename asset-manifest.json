@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/holiday-calendar/static/css/main.7242130f.css",
+    "main.js": "/holiday-calendar/static/js/main.71b12a67.js",
+    "index.html": "/holiday-calendar/index.html",
+    "main.7242130f.css.map": "/holiday-calendar/static/css/main.7242130f.css.map",
+    "main.71b12a67.js.map": "/holiday-calendar/static/js/main.71b12a67.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.7242130f.css",
+    "static/js/main.71b12a67.js"
+  ]
+}
