@@ -24,13 +24,13 @@
   grid-template-columns: repeat(7, 1fr);
   justify-items: center;
 }
-.calendar span {
+/* .calendar span {
   display: flex;
   width: 100%;
   align-items: center;
   justify-content: center;
   height: 45px;
-}
+} */
 .day {
   position: relative;
 }

@@ -1,15 +1,10 @@
 import Calendar from "./components/calendar";
-
-function MyButton({ title, disabled }) {
-  return <button disabled={disabled}>{title}</button>;
-}
+import "./global.css";
 
 export default function App() {
   return (
-    <div>
-      <h1>Welcome to my app</h1>
-      <MyButton title="I'm a disabled button" disabled={true} />
+    <main className="container mx-auto p-5">
       <Calendar />
-    </div>
+    </main>
   );
 }

@@ -1,90 +1,158 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import dayjs from "dayjs";
-import styles from "./calendar.module.css"; // 스타일 파일을 불러옵니다.
+import styles from "./calendar.module.css";
 
 function Calendar() {
-  // 캘린더를 렌더링하는 함수입니다.
+  const [currentMonth, setCurrentMonth] = useState(dayjs()); // 현재 월을 상태로 관리합니다.
+  const [selectedDate, setSelectedDate] = useState(dayjs()); // 선택된 날짜를 상태로 관리합니다.
+  const [holidays, setHolidays] = useState([]);
+  const [schedule, setSchedule] = useState({}); // 스케줄 정보를 상태로 관리합니다.
+
+  // API에서 공휴일 정보를 가져오는 함수
+  const fetchHolidays = async () => {
+    try {
+      const serviceKey =
+        "7%2BAaSmpK5tpk%2BDTGrlslJBQz8ri55TufnrLlR%2B0fExcf%2FQGHqmN4H9USkFDVdlLtxfHu90IcOMbbBBY4e0eljg%3D%3D";
+      const url = `http://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getAnniversaryInfo`;
+      const queryParams = new URLSearchParams({
+        ServiceKey: serviceKey,
+        pageNo: 1,
+        numOfRows: 10,
+        solYear: currentMonth.year(),
+        solMonth: currentMonth.month() + 1,
+      });
+
+      const response = await fetch(`${url}?${queryParams.toString()}`);
+      const data = await response.text(); // XML 형식의 응답을 문자열로 받음
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(data, "text/xml"); // 문자열을 XML 문서로 파싱
+      const items = xmlDoc.getElementsByTagName("item");
+      const holidayList = Array.from(items).map((item) => {
+        return item.getElementsByTagName("locdate")[0].textContent; // 각 item의 locdate 값을 배열에 추가
+      });
+      setHolidays(holidayList);
+    } catch (error) {
+      console.error("Error fetching holidays:", error);
+    }
+  };
+
+  // 선택된 날짜의 스케줄을 추가하는 함수
+  const addSchedule = (date, scheduleName) => {
+    // 선택된 날짜의 스케줄을 설정합니다.
+    setSchedule((prevSchedule) => ({
+      ...prevSchedule,
+      [date.format("YYYY-MM-DD")]: scheduleName,
+    }));
+  };
+
+  // 선택된 날짜의 스케줄을 삭제하는 함수
+  const deleteSchedule = (date) => {
+    // 선택된 날짜의 스케줄을 제거합니다.
+    const updatedSchedule = { ...schedule };
+    delete updatedSchedule[date.format("YYYY-MM-DD")];
+    setSchedule(updatedSchedule);
+  };
+
+  // 이전 달로 이동하는 함수
+  const goToPreviousMonth = () => {
+    setCurrentMonth((prevMonth) => prevMonth.subtract(1, "month"));
+  };
+
+  // 다음 달로 이동하는 함수
+  const goToNextMonth = () => {
+    setCurrentMonth((prevMonth) => prevMonth.add(1, "month"));
+  };
+
+  // 오늘 날짜로 이동하는 함수
+  const goToToday = () => {
+    setCurrentMonth(dayjs());
+  };
+
+  // 선택된 날짜가 오늘인지 확인하는 함수
+  const isToday = (date) => {
+    return date.isSame(dayjs(), "day");
+  };
+
+  // 선택된 날짜가 공휴일인지 확인하는 함수
+  const isHoliday = (date) => {
+    console.log(holidays);
+    return holidays.includes(date.format("YYYYMMDD"));
+  };
+
+  // 캘린더를 렌더링하는 함수
   const renderCalendar = () => {
-    // 웨딩 날짜를 기준으로 dayjs 객체를 생성합니다.
-    const targetDate = dayjs();
-    // 해당 달의 첫 번째 날을 구하고, 해당 주의 첫 번째 날로 설정합니다.
-    const firstDayOfMonth = targetDate.startOf("month").startOf("week");
-    // 해당 달의 마지막 날을 구하고, 해당 주의 마지막 날로 설정합니다.
-    const lastDayOfMonth = targetDate.endOf("month").endOf("week");
+    const weeks = [];
+    let currentDay = currentMonth.startOf("month").startOf("week");
 
-    const weeks = []; // 캘린더 주를 저장할 배열입니다.
-
-    let currentDay = firstDayOfMonth; // 현재 날짜를 해당 달의 첫 번째 날로 설정합니다.
-    // 마지막 주까지 반복합니다.
-    while (currentDay.isBefore(lastDayOfMonth)) {
-      const days = []; // 한 주의 날짜를 저장할 배열입니다.
-      // 한 주의 일수(7일)만큼 반복합니다.
+    while (currentDay.isBefore(currentMonth.endOf("month").endOf("week"))) {
+      const days = [];
       for (let i = 0; i < 7; i++) {
-        const isTargetday = currentDay.isSame(targetDate, "day"); // 해당 날짜인지 확인합니다.
-        const isSunday = currentDay.day() === 0; // 일요일인지 확인합니다.
-        const isSaturday = currentDay.day() === 6; // 토요일인지 확인합니다.
-        const isOtherMonth = currentDay.month() !== targetDate.month(); // 다른 달인지 확인합니다.
-        // 각 날짜를 span 태그로 표현하고, 휴일인 경우에는 스타일을 추가합니다.
+        const isTargetDay = currentDay.isSame(selectedDate, "day");
+        const isOtherMonth = currentDay.month() !== currentMonth.month();
         days.push(
           <span
-            key={currentDay.format("YYYY-MM-DD")} // 고유한 키를 설정합니다.
-            className={`${styles.day} ${
-              isTargetday ? styles["target-date"] : ""
-            } ${
-              isSunday ? styles.holiday : "" // 휴일인 경우 스타일을 추가합니다.
-            } ${isOtherMonth ? styles["other-month"] : ""}`}
+            key={currentDay.format("YYYY-MM-DD")}
+            className={`flex w-full items-center justify-center h-11 ${
+              styles.day
+            } ${isTargetDay ? styles["target-date"] : ""} ${
+              isOtherMonth ? styles["other-month"] : ""
+            }`}
+            onClick={() => setSelectedDate(currentDay)}
           >
-            {/* {isTargetday ? <span className={styles.heart}></span> : ""} */}
-            {currentDay.format("D")}
-            {isTargetday && (
-              <span
-                className="absolute w-12 -z-10"
-                style={{
-                  background: "#ff9c9c",
-                  position: "absolute",
-                  zIndex: "-1",
-                }}
-              />
+            {isHoliday(currentDay) && (
+              <span className={styles.holiday}>공휴일</span>
             )}
+            {
+              <span>
+                <span
+                  className={`${
+                    isToday(currentDay) ? "text-white" : null
+                  } relative p-1 size-6 inline-flex justify-center items-center`}
+                >
+                  {isToday(currentDay) && (
+                    <span className="bg-red-300 rounded-full absolute size-6 -z-10 left-0 top-0"></span>
+                  )}
+                  {currentDay.format("D")}
+                </span>
+                일
+              </span>
+            }
           </span>
         );
-        currentDay = currentDay.add(1, "day"); // 다음 날짜로 이동합니다.
+        currentDay = currentDay.add(1, "day");
       }
-      // 한 주의 날짜를 div 태그로 묶어서 주차에 추가합니다.
       weeks.push(
         <div key={currentDay.format("YYYY-MM-DD")} className={styles.week}>
           {days}
         </div>
       );
     }
-
-    return weeks; // 캘린더 주를 반환합니다.
+    return weeks;
   };
 
-  // 요일 구하기
-  const getDay = (day) => {
-    // 현재 날짜를 가져옵니다.
-    const currentDate = dayjs(day);
-
-    // 현재 날짜의 요일을 가져옵니다. (0: 일요일, 1: 월요일, ..., 6: 토요일)
-    const dayOfWeek = currentDate.day();
-
-    // 각 요일에 대한 한글 표시를 정의합니다.
-    const dayOfWeekKorean = ["일", "월", "화", "수", "목", "금", "토"];
-
-    // 현재 요일에 해당하는 한글 요일을 반환합니다.
-    return dayOfWeekKorean[dayOfWeek];
-  };
+  useEffect(() => {
+    fetchHolidays(); // 컴포넌트가 마운트될 때 한 번만 공휴일 정보를 가져옵니다.
+  }, [currentMonth]); // currentMonth 상태가 변경될 때마다 공휴일 정보를 다시 가져옵니다.
 
   return (
     <div>
-      <div className="mb-8 text-xl text-center">
-        {/* {dayjs(meta.weddingDate)
-          .locale("ko")
-          .format("YYYY년 MM월 DD일 dddd A h시")} */}
-        {dayjs().locale("ko").format("M월")}
+      <div className="mb-8 text-xl text-center flex justify-between">
+        <div>{currentMonth.format("YYYY년 M월")}</div>
+        <div className="flex gap-2">
+          <button
+            className="rounded-sm shadow px-2"
+            onClick={goToPreviousMonth}
+          >
+            {"<"}
+          </button>
+          <button className="rounded-sm shadow px-2" onClick={goToToday}>
+            오늘
+          </button>
+          <button className="rounded-sm shadow px-2" onClick={goToNextMonth}>
+            {">"}
+          </button>
+        </div>
       </div>
-      {/* 요일을 나타내는 부분입니다. */}
       <div className={styles.days}>
         <span className="text-red-500">일</span>
         <span>월</span>
@@ -92,11 +160,20 @@ function Calendar() {
         <span>수</span>
         <span>목</span>
         <span>금</span>
-        <span>토</span>
+        <span className="text-red-500">토</span>
       </div>
-      {/* 캘린더를 나타내는 부분입니다. */}
       <div className={`${styles.calendar} relative z-10`}>
         {renderCalendar()}
+      </div>
+      <div>
+        {/* 스케줄 추가 및 삭제 UI를 구현할 수 있는 부분입니다. */}
+        {/* <input
+          type="text"
+          placeholder="스케줄 이름"
+          value={schedule[selectedDate.format("YYYY-MM-DD")] || ""}
+          onChange={(e) => addSchedule(selectedDate, e.target.value)}
+        />
+        <button onClick={() => deleteSchedule(selectedDate)}>삭제</button> */}
       </div>
     </div>
   );
