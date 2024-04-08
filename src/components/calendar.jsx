@@ -4,7 +4,8 @@ import styles from "./calendar.module.css";
 
 function Calendar() {
   const [currentMonth, setCurrentMonth] = useState(dayjs()); // 현재 월을 상태로 관리합니다.
-  const [selectedDate, setSelectedDate] = useState(dayjs()); // 선택된 날짜를 상태로 관리합니다.
+  const [isEditModal, setIsEditModal] = useState(false); // 선택된 날짜를 상태로 관리합니다.
+  const [selectedDate, setSelectedDate] = useState(null); // 선택된 날짜를 상태로 관리합니다.
   const [holidays, setHolidays] = useState([]);
   const [schedule, setSchedule] = useState({}); // 스케줄 정보를 상태로 관리합니다.
 
@@ -81,7 +82,6 @@ function Calendar() {
 
   // 선택된 날짜가 공휴일인지 확인하는 함수
   const isHoliday = (date) => {
-    console.log(holidays);
     return holidays.includes(date.format("YYYYMMDD"));
   };
 
@@ -93,19 +93,23 @@ function Calendar() {
     while (currentDay.isBefore(currentMonth.endOf("month").endOf("week"))) {
       const days = [];
       for (let i = 0; i < 7; i++) {
-        const isTargetDay = currentDay.isSame(selectedDate, "day"); // 대상 날짜
+        const tempDay = currentDay;
+        const isTargetDay = currentDay.isSame(dayjs(), "day"); // 대상 날짜
         const isOtherMonth = currentDay.month() !== currentMonth.month(); // 해당월이 아닌 날짜
         const isSunday = currentDay.day() === 0; // 일요일인지 확인합니다.
         const isSaturday = currentDay.day() === 6; // 토요일인지 확인합니다.
         days.push(
           <div
             key={currentDay.format("YYYY-MM-DD")}
-            className={`flex flex-col justify-start w-full  items-end h-20 p-1 ${
+            className={`flex flex-col justify-start w-full  items-end h-20 p-1 gap-0.5 overflow-y-auto ${
               styles.day
             } ${isTargetDay ? styles["target-date"] : ""} ${
               isOtherMonth ? styles["other-month"] : ""
             } ${isSunday || isSaturday ? "bg-stone-100 text-stone-400" : ""}`}
-            onClick={() => setSelectedDate(currentDay)}
+            onClick={() => {
+              onHandleEditModal();
+              setSelectedDate(tempDay);
+            }}
           >
             {
               <span>
@@ -122,6 +126,15 @@ function Calendar() {
                 일
               </span>
             }
+            {/* 개인 일정 */}
+            {schedule[currentDay?.format("YYYY-MM-DD")] ? (
+              <span
+                className={"bg-blue-400 text-white px-2 rounded w-full text-xs"}
+              >
+                • {schedule[currentDay?.format("YYYY-MM-DD")]}
+              </span>
+            ) : null}
+            {/* 공휴일 */}
             <span className={"bg-red-200 px-2 rounded w-full text-xs"}>
               {
                 holidays.find(
@@ -145,6 +158,11 @@ function Calendar() {
       );
     }
     return weeks;
+  };
+
+  // 일정 수정 모달 핸들러
+  const onHandleEditModal = () => {
+    setIsEditModal((prev) => !prev);
   };
 
   useEffect(() => {
@@ -182,18 +200,53 @@ function Calendar() {
       <div className={`${styles.calendar} relative z-10`}>
         {renderCalendar()}
       </div>
-      <div>
-        {/* 스케줄 추가 및 삭제 UI를 구현할 수 있는 부분입니다. */}
-        {/* <input
-          type="text"
-          placeholder="스케줄 이름"
-          value={schedule[selectedDate.format("YYYY-MM-DD")] || ""}
-          onChange={(e) => addSchedule(selectedDate, e.target.value)}
-        />
-        <button onClick={() => deleteSchedule(selectedDate)}>삭제</button> */}
-      </div>
+      {isEditModal ? (
+        <Modal onClose={onHandleEditModal}>
+          <form className="flex flex-col" onSubmit={onHandleEditModal}>
+            <h3 className="text-lg mb-2 font-semibold">일정 등록 및 수정</h3>
+            {/* 스케줄 추가 및 삭제 UI를 구현할 수 있는 부분입니다. */}
+            <input
+              className="border-b-2 transition focus:border-orange-200 outline-none w-full  mb-4"
+              type="text"
+              placeholder="스케줄 이름"
+              value={schedule[selectedDate?.format("YYYY-MM-DD")] || ""}
+              onChange={(e) => addSchedule(selectedDate, e.target.value)}
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                className="rounded-sm shadow px-2 hover:bg-stone-200 transition"
+                onClick={onHandleEditModal}
+              >
+                입력
+              </button>
+              <button
+                className="rounded-sm shadow px-2 hover:bg-stone-200 transition"
+                onClick={() => deleteSchedule(selectedDate)}
+              >
+                삭제
+              </button>
+            </div>
+          </form>
+        </Modal>
+      ) : null}
     </div>
   );
 }
 
+function Modal({ children, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="p-6 bg-white rounded-lg shadow-xl w-96"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 export default Calendar;
