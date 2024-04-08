@@ -119,11 +119,11 @@ function Calendar() {
                   } relative p-1 size-6 inline-flex justify-center items-center`}
                 >
                   {isToday(currentDay) && (
-                    <span className="bg-red-500 rounded-full absolute size-6 -z-10 left-0 top-0"></span>
+                    <span className="absolute top-0 left-0 bg-red-500 rounded-full size-6 -z-10"></span>
                   )}
                   {currentDay.format("D")}
                 </span>
-                일
+                <span className="hidden sm:inline-block">일</span>
               </span>
             }
             {/* 개인 일정 */}
@@ -151,7 +151,7 @@ function Calendar() {
       weeks.push(
         <div
           key={currentDay.format("YYYY-MM-DD")}
-          className="grid grid-cols-7 border-b border-x divide-x first:border-t"
+          className="grid grid-cols-7 border-b divide-x border-x first:border-t"
         >
           {days}
         </div>
@@ -171,25 +171,25 @@ function Calendar() {
 
   return (
     <div>
-      <div className="mb-2 text-xl text-center flex justify-between items-center">
+      <div className="flex items-center justify-between mb-2 text-xl text-center">
         <h2 className="text-3xl font-bold">
           {currentMonth.format("YYYY년 M월")}
         </h2>
         <div className="flex text-xs">
           <button
-            className="hover:bg-stone-200 transition rounded shadow px-2"
+            className="px-2 transition rounded shadow hover:bg-stone-200"
             onClick={goToPreviousMonth}
           >
             {"<"}
           </button>
           <button
-            className="hover:bg-stone-200 transition rounded shadow px-4"
+            className="px-4 transition rounded shadow hover:bg-stone-200"
             onClick={goToToday}
           >
             오늘
           </button>
           <button
-            className="hover:bg-stone-200 transition rounded shadow px-2"
+            className="px-2 transition rounded shadow hover:bg-stone-200"
             onClick={goToNextMonth}
           >
             {">"}
@@ -211,25 +211,25 @@ function Calendar() {
       {isEditModal ? (
         <Modal onClose={onHandleEditModal}>
           <form className="flex flex-col" onSubmit={onHandleEditModal}>
-            <h3 className="text-lg mb-2 font-semibold">일정 등록 및 수정</h3>
+            <h3 className="mb-2 text-lg font-semibold">일정 등록 및 수정</h3>
             {/* 스케줄 추가 및 삭제 UI를 구현할 수 있는 부분입니다. */}
             <input
-              className="border-b-2 transition focus:border-orange-200 outline-none w-full  mb-4"
+              className="w-full mb-4 transition border-b-2 outline-none focus:border-orange-200"
               type="text"
               placeholder="스케줄 이름"
               value={schedule[selectedDate?.format("YYYY-MM-DD")] || ""}
               onChange={(e) => addSchedule(selectedDate, e.target.value)}
               autoFocus
             />
-            <div className="flex gap-2 justify-end">
+            <div className="flex justify-end gap-2">
               <button
-                className="rounded-sm shadow px-2 hover:bg-stone-200 transition"
+                className="px-2 transition rounded-sm shadow hover:bg-stone-200"
                 onClick={onHandleEditModal}
               >
                 입력
               </button>
               <button
-                className="rounded-sm shadow px-2 hover:bg-stone-200 transition"
+                className="px-2 transition rounded-sm shadow hover:bg-stone-200"
                 onClick={() => deleteSchedule(selectedDate)}
               >
                 삭제
